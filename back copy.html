@@ -2,7 +2,6 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; object-src 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tet Magic - Final Gold 2026</title>
     <style>
@@ -414,19 +413,40 @@
             return new THREE.CanvasTexture(c);
         }
 
-        function addPhotoToScene(texture) {
-            const group = new THREE.Group(); 
-            const photoGeo = new THREE.PlaneGeometry(2.5, 2.5); 
-            const photoMat = INGOT_MATS.photo.clone(); photoMat.map = texture;
-            const photo = new THREE.Mesh(photoGeo, photoMat); photo.position.z = 0.18;
-            const frameGeo = new THREE.BoxGeometry(2.8, 2.8, 0.3); const frame = new THREE.Mesh(frameGeo, INGOT_MATS.gold);
-            const backGeo = new THREE.BoxGeometry(2.6, 2.6, 0.32); const back = new THREE.Mesh(backGeo, INGOT_MATS.velvetRed);
-            group.add(frame, back, photo); photoMeshGroup.add(group);
-            group.userData = { isPhoto: true, u: 0 };
-            particleSystem.push(new Particle(group, 'PHOTO', false)); 
-            updatePhotoPositions();
-        }
+        function addPhotoToScene(unused_texture) {
+    const group = new THREE.Group(); 
+    
+    // Tạo một Canvas để vẽ chữ/Emoji thay vì load ảnh
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#8b0000'; // Nền đỏ nhung
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillStyle = '#ffd700'; // Chữ vàng
+    ctx.font = 'bold 300px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('福', 256, 280); // Chữ "Phúc" hoặc Emoji🧧
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const photoGeo = new THREE.PlaneGeometry(2.5, 2.5); 
+    const photoMat = INGOT_MATS.photo.clone(); 
+    photoMat.map = texture; // Dùng texture vừa vẽ
+    photoMat.transparent = false;
 
+    const photo = new THREE.Mesh(photoGeo, photoMat); 
+    photo.position.z = 0.18;
+    const frameGeo = new THREE.BoxGeometry(2.8, 2.8, 0.3); 
+    const frame = new THREE.Mesh(frameGeo, INGOT_MATS.gold);
+    const backGeo = new THREE.BoxGeometry(2.6, 2.6, 0.32); 
+    const back = new THREE.Mesh(backGeo, INGOT_MATS.velvetRed);
+
+    group.add(frame, back, photo); 
+    photoMeshGroup.add(group);
+    group.userData = { isPhoto: true, u: 0 };
+    particleSystem.push(new Particle(group, 'PHOTO', false)); 
+    updatePhotoPositions();
+}
         function updatePhotoPositions() {
             const photos = particleSystem.filter(p => p.type === 'PHOTO');
             if (photos.length === 0) return;
